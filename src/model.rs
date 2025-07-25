@@ -15,6 +15,7 @@ pub struct Model<B: Backend> {
     dropout: Dropout,
     linear1: Linear<B>,
     linear2: Linear<B>,
+    linear3: Linear<B>,
     activation: Relu,
 }
 
@@ -34,7 +35,8 @@ impl ModelConfig {
             pool: AdaptiveAvgPool2dConfig::new([8, 8]).init(),
             activation: Relu::new(),
             linear1: LinearConfig::new(16 * 8 * 8, self.hidden_size).init(device),
-            linear2: LinearConfig::new(self.hidden_size, self.num_classes).init(device),
+            linear2: LinearConfig::new(self.hidden_size, self.hidden_size).init(device),
+            linear3: LinearConfig::new(self.hidden_size, self.num_classes).init(device),
             dropout: DropoutConfig::new(self.dropout).init(),
         }
     }
@@ -59,9 +61,11 @@ impl<B: Backend> Model<B> {
         let x = self.pool.forward(x); // [batch_size, 16, 8, 8]
         let x = x.reshape([batch_size, 16 * 8 * 8]);
         let x = self.linear1.forward(x);
-        let x = self.dropout.forward(x);
         let x = self.activation.forward(x);
 
-        self.linear2.forward(x) // [batch_size, num_classes]
+        let x = self.linear2.forward(x);
+        let x = self.activation.forward(x);
+
+        self.linear3.forward(x) // [batch_size, num_classes]
     }
 }
