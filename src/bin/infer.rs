@@ -1,21 +1,23 @@
-#![recursion_limit = "131"]
+use anyhow::Result;
 use burn::{backend::WebGpu, data::dataset::Dataset};
+use clap::Parser;
 use logic_hammer::inference;
+use std::path::PathBuf;
 
-fn main() {
-    type MyBackend = WebGpu<f32, i32>;
+#[derive(Parser)]
+struct Args {
+    /// From whence to load checkpoints.
+    #[arg(long = "artifacts", default_value = "./artifacts", env)]
+    artifacts: PathBuf,
+}
 
-    let device = burn::backend::wgpu::WgpuDevice::default();
-
-    // All the training artifacts are saved in this directory
-    let artifact_dir = "/tmp/guide";
-
-    // Infer the model
-    inference::infer::<MyBackend>(
-        artifact_dir,
-        device,
+fn main() -> Result<()> {
+    let args = Args::parse();
+    inference::infer::<WebGpu>(
+        &args.artifacts,
+        Default::default(),
         burn::data::dataset::vision::MnistDataset::test()
             .get(42)
             .unwrap(),
-    );
+    )
 }

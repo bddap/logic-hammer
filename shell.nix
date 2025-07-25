@@ -2,7 +2,19 @@ let
   shell =
     pkgs:
     pkgs.mkShell rec {
-      nativeBuildInputs = [ pkgs.rust-bin.stable.latest.default ];
+      nativeBuildInputs = [
+        (pkgs.rust-bin.fromRustupToolchain {
+          channel = "stable";
+          components = [
+            "cargo"
+            "clippy"
+            "rust-analyzer"
+            "rustfmt"
+            "rust-src"
+            "rust-std"
+          ];
+        })
+      ];
       buildInputs = [ pkgs.vulkan-loader ];
       env = {
         LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;

@@ -8,10 +8,12 @@ version = "0.1.0"
 # default = ["burn/std", "burn/tui", "burn/fusion"]
 
 [dependencies]
+anyhow = "1.0.98"
 burn = { version = "0.18.0", default-features = false, features = [
   "train",
   "webgpu",
   "vision",
 ] }
+clap = { version = "4.5.41", features = ["derive", "env"] }
 log = "0.4.27"
 serde = { version = "1.0.219", features = ["derive"] }

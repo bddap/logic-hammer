@@ -14,6 +14,7 @@ use burn::{
         metric::{AccuracyMetric, LossMetric},
     },
 };
+use std::path::Path;
 
 impl<B: Backend> Model<B> {
     pub fn forward_classification(
@@ -60,16 +61,15 @@ pub struct TrainingConfig {
     pub learning_rate: f64,
 }
 
-fn create_artifact_dir(artifact_dir: &str) {
-    // Remove existing artifacts before to get an accurate learner summary
-    std::fs::remove_dir_all(artifact_dir).ok();
-    std::fs::create_dir_all(artifact_dir).ok();
+fn wipe_artifact_dir(artifacts: &Path) {
+    std::fs::remove_dir_all(artifacts).ok();
+    std::fs::create_dir_all(artifacts).ok();
 }
 
-pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: B::Device) {
-    create_artifact_dir(artifact_dir);
+pub fn train<B: AutodiffBackend>(artifacts: &Path, config: TrainingConfig, device: B::Device) {
+    wipe_artifact_dir(artifacts);
     config
-        .save(format!("{artifact_dir}/config.json"))
+        .save(artifacts.join("config.json"))
         .expect("Config should be saved successfully");
 
     B::seed(config.seed);
@@ -88,7 +88,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         .num_workers(config.num_workers)
         .build(MnistDataset::test());
 
-    let learner = LearnerBuilder::new(artifact_dir)
+    let learner = LearnerBuilder::new(artifacts)
         .metric_train_numeric(AccuracyMetric::new())
         .metric_valid_numeric(AccuracyMetric::new())
         .metric_train_numeric(LossMetric::new())
@@ -106,6 +106,6 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
     let model_trained = learner.fit(dataloader_train, dataloader_test);
 
     model_trained
-        .save_file(format!("{artifact_dir}/model"), &CompactRecorder::new())
+        .save_file(artifacts.join("model"), &CompactRecorder::new())
         .expect("Trained model should be saved successfully");
 }

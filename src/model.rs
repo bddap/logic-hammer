@@ -27,7 +27,6 @@ pub struct ModelConfig {
 }
 
 impl ModelConfig {
-    /// Returns the initialized model.
     pub fn init<B: Backend>(&self, device: &B::Device) -> Model<B> {
         Model {
             conv1: Conv2dConfig::new([1, 8], [3, 3]).init(device),
