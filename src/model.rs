@@ -63,8 +63,11 @@ impl<B: Backend> Model<B> {
         let x = self.linear1.forward(x);
         let x = self.activation.forward(x);
 
-        let x = self.linear2.forward(x);
-        let x = self.activation.forward(x);
+        let mut x = x;
+        for _ in 0..10 {
+            x = self.linear2.forward(x);
+            x = self.activation.forward(x);
+        }
 
         self.linear3.forward(x) // [batch_size, num_classes]
     }
